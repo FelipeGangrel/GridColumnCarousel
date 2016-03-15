@@ -22,6 +22,8 @@
     };
   }
 
+ 
+
   //Constructor
   function GCCarousel(options) {
     //Variables from options
@@ -32,7 +34,39 @@
       autoplayDelay =               options.autoplayDelay || 5000,    //Dictates the wait time between automatically changing pages.
       throttleDelay =               options.throttleDelay || 50,      //The throttle delay used by the underscore/lodash throttle method
       displayPageIndicators =       (typeof options.displayPageIndicators !== 'undefined') ? options.displayPageIndicators : true,    //display dots beneath the carousel to indicate carousel position
-      pageIndicatorsContainerElem = options.pageIndicatorsContainerElem || elem.getElementsByClassName('grid-column-carousel__page-indicators')[0];   //The class of the element that should contain the carousel dots
+      pageIndicatorsContainerElem = options.pageIndicatorsContainerElem || elem.getElementsByClassName('grid-column-carousel-indicators')[0],   //The class of the element that should contain the carousel dots
+      step = options.step || false,
+      columns = (options.columns || '').split(' ');
+
+
+    var divisor = 1;
+
+    verificaLargura();
+
+    function verificaLargura(){
+      
+      if (step === true){
+        var larguraJanela = window.innerWidth;
+        console.log(larguraJanela);
+
+        if(larguraJanela >= 1200){
+          divisor = columns[0];
+        }else if(larguraJanela >= 1024){
+          divisor = columns[1];
+        }else if(larguraJanela >= 768){
+          divisor = columns[2];
+        }else{
+          divisor = columns[3];
+        }
+      }
+
+    }
+
+
+    window.onresize = function(){
+      verificaLargura();
+    }
+
 
     //private variables
     var refElem,
@@ -44,7 +78,7 @@
         currentPage = 0,
         self = this,
         ManualResizeIntervalID,
-        listElem = elem.querySelector('.grid-column-carousel__list'),   //The list element
+        listElem = elem.querySelector('.grid-column-carousel-list'),   //The list element
         colItems; //A list of all the column items
 
     initialize();
@@ -111,7 +145,14 @@
       slideWidth = elem.getBoundingClientRect().width;
 
       //Calculate how many pages are necessary
-      pagesCount = Math.ceil(colItems.length / (slideWidth / colItemWidth));
+      // pagesCount = Math.ceil(colItems.length / (slideWidth / colItemWidth));
+      if(step){
+        pagesCount = Math.ceil(colItems.length) - (divisor-1);
+      }else{
+        pagesCount = Math.ceil(colItems.length / (slideWidth / colItemWidth));
+      }
+            
+
     }
 
     //gets the index of an li
@@ -133,7 +174,7 @@
       }
       for (var i = 0; i < pagesCount; i++) {
         var indicator = document.createElement('li');
-        indicator.classList.add('grid-column-carousel__page-indicator');
+        indicator.classList.add('grid-column-carousel-indicator');
         if(i === 0) {
           indicator.classList.add('active');
         }
@@ -182,7 +223,7 @@
       //toggle active class on page indicators
       if(displayPageIndicators) {
         pageIndicatorsContainerElem.getElementsByClassName('active')[0].classList.remove('active');
-        pageIndicatorsContainerElem.getElementsByClassName('grid-column-carousel__page-indicator')[pageNumber].classList.add('active');
+        pageIndicatorsContainerElem.getElementsByClassName('grid-column-carousel-indicator')[pageNumber].classList.add('active');
       }
 
       currentPage = pageNumber;
@@ -197,8 +238,12 @@
       if(pageNumber === 0) {
         setX(0);
       } else {
-        setX(pageNumber * slideWidth * -1);
+        setX(pageNumber * slideWidth / divisor * -1 );
       }
+
+      // console.log(pageNumber);
+
+
     }
 
     //will slide to the page that currently displays the element indicated by the index
